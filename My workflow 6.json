@@ -1,0 +1,190 @@
+{
+  "name": "My workflow 6",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a1c45e74-ec89-49d7-8e38-63509b63878f",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 10,
+        "filters": {
+          "q": "is:unread"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "6628dbdf-e515-4d43-8b83-3f5a76a8451a",
+      "name": "Get many messages",
+      "webhookId": "31c361e3-0fdc-41de-aeb8-7bf9e1f6cf47",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "wq95BoLuB0K2fryk",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are my email assistant.\n\nAnalyze all the emails provided in the input.\nActual Gmail emails:\n\n{{ JSON.stringify($json.data) }}\n\nFor each email:\n- Identify the sender\n- Identify the subject\n- Classify it as Urgent, Important, or Normal\n- Give a short summary\n- Identify the required action\n- Identify the deadline, if available\n\nThen create one clear daily email digest.\n\nUse this format:\n\n📧 DAILY EMAIL DIGEST\n\n🔴 URGENT\n[emails]\n\n🟡 IMPORTANT\n[emails]\n\n🟢 NORMAL\n[emails]\n\n✅ REQUIRED ACTIONS & DEADLINES\n[actions and deadlines]\n\nDo not create hypothetical or example emails.\nUse ONLY the actual emails provided in the input.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        624,
+        0
+      ],
+      "id": "55a9ea37-8dd0-4999-ab33-63a544b74c24",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        624,
+        144
+      ],
+      "id": "f0b49134-e0fa-4a13-9a00-17710e29f957",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "cfe3709f-b106-4cb9-9d3c-6688d396d2dc",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "chatId": "8873767196",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "2bdb6a91-bc45-40a5-9a48-2056e4c29a61",
+      "name": "Send a text message",
+      "webhookId": "deb489a8-d080-4bb1-ac89-9e56822b9ddf",
+      "credentials": {
+        "telegramApi": {
+          "id": "g1K0RXbb3kAIRuf7",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c1c0e47f-b782-477e-83c0-d3a1f5f8ff97",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e3ca175b2b26f14495ad5950ffb3d69cd66828a235444475ce74d9f5f4de209a"
+  },
+  "nodeGroups": [],
+  "id": "ejgeuuIW3w9D3Qwl",
+  "tags": []
+}
